@@ -24,3 +24,19 @@ const ai=new GoogleGenAI({
 //     process.stdout.write(chunk.text);
 // }
 
+// chats creating for multi turn conversations
+const chat = await ai.chats.create({
+  model: "gemini-3-flash-preview",
+});
+
+const response1 = await chat.sendMessage({
+  message: "Hello, My name is Anshul",
+});
+
+console.log("Response 1:", response1.text);
+
+const response2 = await chat.sendMessage({
+  message: "Can you tell me my name?",
+});
+
+console.log("Response 2:", response2.text);
