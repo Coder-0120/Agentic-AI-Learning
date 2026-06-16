@@ -45,14 +45,29 @@ const ai=new GoogleGenAI({
 //Learning to integerate tools like google search
 const response=await ai.models.generateContent({
     model:"gemini-3-flash-preview",
-    contents:"tell me latest iphone released ?",
+    contents:"Who is the current Prime Minister of India in 2026?",
     tools:[
         {
             googleSearch:{}
         }
     ]
 })
-console.log(response.text);
+// // console.log(response.text);
+// console.log(response);
+
+ const metadata = response.candidates[0]?.groundingMetadata;
+  if (metadata?.webSearchQueries) {
+    console.log("\nSearch queries executed:");
+    for (const query of metadata.webSearchQueries) {
+      console.log(` - ${query}`);
+    }
+  }
+  if (metadata?.groundingChunks) {
+    console.log("\nSources:");
+    for (const chunk of metadata.groundingChunks) {
+      console.log(` - [${chunk.web.title}](${chunk.web.uri})`);
+    }
+  }
 // User question
 //    ↓
 // Gemini sees: needs latest info

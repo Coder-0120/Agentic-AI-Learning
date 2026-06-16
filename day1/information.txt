@@ -1,0 +1,59 @@
+🧠 What is groundingMetadata?
+When you use:
+
+tools: [{ googleSearch: {} }]
+
+Gemini does NOT just answer.
+
+It also records:
+
+what it searched
+what sources it used
+where the information came from
+
+That info is stored in:
+
+response.candidates[0].groundingMetadata
+
+🔍 Your Code Explained
+1. Get metadata
+const metadata = response.candidates[0]?.groundingMetadata;
+
+👉 This extracts the “thinking trail” of the model.
+
+Think of it like:
+
+Brain → Answer
+        + Evidence trail
+🌐 2. Web search queries used
+if (metadata?.webSearchQueries) {
+
+This shows:
+
+“What Google queries did the model actually run?”
+
+Example output:
+Search queries executed:
+ - latest iPhone 2026 release
+ - Apple new phone features 2026
+
+👉 This is EXTREMELY important for debugging agents.
+
+Why it matters in Agentic AI
+
+You can check:
+
+Did the agent search correctly?
+Did it misunderstand the question?
+Is it hallucinating search terms?
+📦 3. Grounding sources (real URLs)
+if (metadata?.groundingChunks) {
+
+This gives:
+
+“Where did the answer come from?”
+
+Example:
+Sources:
+ - [Apple Official Site](https://apple.com/iphone16)
+ - [TechCrunch](https://techcrunch.com/...)
