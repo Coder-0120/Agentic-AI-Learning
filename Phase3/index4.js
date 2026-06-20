@@ -61,3 +61,5 @@ async function Search(query) {
 
 const userQuery=await Search("Tell me something about code");
 console.log("top 3 result:",userQuery);
+
+
