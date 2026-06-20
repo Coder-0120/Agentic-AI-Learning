@@ -1,3 +1,4 @@
+// RAG FUNDAMENTALS: Store Embeddings Once and then perform  as per user query and also send to gemini to answer query
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 dotenv.config();
