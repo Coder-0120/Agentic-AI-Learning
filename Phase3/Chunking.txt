@@ -49,3 +49,25 @@ Benefits:
 Prevents loss of context
 Better retrieval
 ------------------------------------------------------------------------------------------------------------------------------------------------
+
+Store Embeddings Once
+
+This is extremely important.
+
+❌ Bad:
+
+Every query
+ ↓
+Generate document embeddings again
+
+Very expensive.
+------------------------------------------------------
+✅ Good:
+
+Start app
+ ↓
+Generate embeddings once
+ ↓
+Store in memory
+ ↓
+Reuse forever
