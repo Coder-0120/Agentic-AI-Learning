@@ -1,0 +1,51 @@
+// Chunking
+// Why Chunking?
+// LLMs cannot process huge PDFs efficiently.
+// Example: 500-page PDF
+// You don't send the entire PDF.
+// Instead: Chunk 1,Chunk 2,Chunk 3,...
+// Then search only relevant chunks.
+// This is the foundation of RAG.
+
+TYPES OF Chunking
+-->Fixed Chunking
+
+Split after fixed size.
+Example:
+1000 characters
+Chunk 1 -> 1000 chars
+Chunk 2 -> 1000 chars
+Chunk 3 -> 1000 chars
+Easy but can break sentences.
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-->Recursive Chunking
+
+Tries:
+
+Paragraph
+↓
+Sentence
+↓
+Words
+
+Keeps meaning intact.
+Most used in production.
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-->Overlapping Chunking
+
+Example:
+
+Chunk1:
+0-1000 chars
+
+Chunk2:
+800-1800 chars
+
+Overlap:200 chars
+
+Benefits:
+Prevents loss of context
+Better retrieval
+------------------------------------------------------------------------------------------------------------------------------------------------
