@@ -1,4 +1,4 @@
-//Find Most Similar Document  as peer user query out of given and stored sentences
+// Retrieve Top 3 Documents
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 dotenv.config();
@@ -34,27 +34,27 @@ const docs = [
   "Virat Kohli is one of the greatest cricketers.",
   "JavaScript is used for web development.",
   "React is a frontend library.",
-  "Cricket is the most popular sport in India."
+  "Cricket is the most popular sport in India.",
+  "Coding is my life.",
+  "I am Mern Stack developer."
 ];
 
-const query = "Tell me about Development";
+const query = "Tell me about coding";
 
 const queryEmbedding = await getEmbedding(query);
-
-let bestMatch = "";
-let highestScore = -1;
+const results = [];
 
 for (const doc of docs) {
   const docEmbedding = await getEmbedding(doc);
 
   const score = cosineSimilarity(queryEmbedding,docEmbedding);
-  console.log(doc, score);
-
-  if (score > highestScore) {
-    highestScore = score;
-    bestMatch = doc;
-  }
+  results.push({
+    document:doc,
+    score
+  })
+  // sort result in descending order as per score 
+  results.sort((a,b)=>b.score-a.score);
 }
 
-console.log("\nBest Match:");
-console.log(bestMatch);
+console.log("\n Top 3 best match as per user query:");
+console.log(results.slice(0,3));
