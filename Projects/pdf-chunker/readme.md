@@ -46,9 +46,9 @@ chat-with-pdf/
 # ⚙️ Installation
 
 ```bash
-git clone <repository-url>
-
-cd chat-with-pdf
+git clone https://github.com/Coder-0120/Agentic-AI-Learning.git
+cd Projects
+cd pdf-chunker
 
 npm install
 ```
