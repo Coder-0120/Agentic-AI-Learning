@@ -1,0 +1,34 @@
+[
+  {
+    "role": "user",
+    "content": "i m anshul"
+  },
+  {
+    "role": "assistant",
+    "content": "Hi Anshul! Nice to meet you. How can I help you today?"
+  },
+  {
+    "role": "user",
+    "content": "tell my namee"
+  },
+  {
+    "role": "assistant",
+    "content": "Your name is **Anshul**."
+  },
+  {
+    "role": "user",
+    "content": "i done btech "
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, Anshul, you have a B.Tech. That's a great qualification!\n\nWhat would you like to discuss or know about it? Are you:\n\n*   Looking for job advice?\n*   Considering further studies?\n*   Thinking about a career change?\n*   Wanting to leverage your B.Tech in some way?\n*   Just sharing some background information?"
+  },
+  {
+    "role": "user",
+    "content": "tell my name and qualification"
+  },
+  {
+    "role": "assistant",
+    "content": "Your name is **Anshul** and you have a **B.Tech** degree."
+  }
+]
