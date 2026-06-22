@@ -1,29 +1,34 @@
 import fs from "fs";
 import pdf from "pdf-parse/lib/pdf-parse.js";
+import readline from "readline";
+import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import faiss from "faiss-node";
-const { IndexFlatL2 } = faiss;
-import dotenv from "dotenv";
+
 dotenv.config();
 
-// Gemini Client
+const { IndexFlatL2 } = faiss;
+
+// Gemini Client 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
 /*
 |--------------------------------------------------------------------------
-| Chunk Text with Overlap
+| Create Text Chunks with Overlap
 |--------------------------------------------------------------------------
+|
 | Example:
 |
-| Chunk 1 -> Characters 0-100
-| Chunk 2 -> Characters 80-180
+| Chunk 1 -> Characters 0 - 500
+| Chunk 2 -> Characters 400 - 900
 |
-| Overlap helps preserve context.
+| Overlap preserves context between chunks.
+|
 |--------------------------------------------------------------------------
 */
-function createChunks(text, chunkSize = 100, overlap = 20) {
+function createChunks(text, chunkSize = 500, overlap = 100) {
   const chunks = [];
 
   for (let i = 0; i < text.length; i += chunkSize - overlap) {
@@ -37,147 +42,207 @@ function createChunks(text, chunkSize = 100, overlap = 20) {
   return chunks;
 }
 
-/*
-|--------------------------------------------------------------------------
-| Generate Embedding using Gemini
-|--------------------------------------------------------------------------
-*/
+// Generate Embedding using Gemini
 async function getEmbedding(text) {
-  const response = await ai.models.embedContent({
-    model: "gemini-embedding-001",
-    contents: text,
-  });
+  try {
+    const response = await ai.models.embedContent({
+      model: "gemini-embedding-001",
+      contents: text,
+    });
 
-  return response.embeddings[0].values;
+    return response.embeddings[0].values;
+  } catch (error) {
+    console.error("Embedding Error:", error);
+    throw error;
+  }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Main Function
-|--------------------------------------------------------------------------
-*/
-async function extractAndEmbedPDF() {
+// Ask Question in Terminal
+function askQuestion(rl, question) {
+  return new Promise((resolve) => {
+    rl.question(question, resolve);
+  });
+}
+
+// Main function
+async function chatWithPDF() {
   try {
-    console.log("📄 Reading PDF...\n");
+    console.log("\n🚀 Starting Chat With PDF...\n");
 
     /*
     ------------------------------------------------------------------------
-    | Read PDF File
+    | Step 1: Read PDF
     ------------------------------------------------------------------------
     */
+    console.log("📄 Reading PDF...");
     const dataBuffer = fs.readFileSync("sample.pdf");
 
     /*
     ------------------------------------------------------------------------
-    | Extract Text
+    | Step 2: Extract Text
     ------------------------------------------------------------------------
     */
-    const data = await pdf(dataBuffer);
-
-    const text = data.text;
-
-    console.log(`✅ Pages: ${data.numpages}`);
-    console.log(`✅ Characters Extracted: ${text.length}\n`);
+    const pdfData = await pdf(dataBuffer);
+    const text = pdfData.text;
+    console.log(`✅ Pages: ${pdfData.numpages}`);
+    console.log(`✅ Characters Extracted: ${text.length}`);
 
     /*
     ------------------------------------------------------------------------
-    | Create Chunks
+    | Step 3: Create Chunks
     ------------------------------------------------------------------------
     */
+    console.log("\n✂️ Creating Chunks...");
     const chunks = createChunks(text);
-
-    console.log(`✅ Total Chunks Created: ${chunks.length}\n`);
+    console.log(`✅ Total Chunks: ${chunks.length}`);
 
     /*
     ------------------------------------------------------------------------
-    | Generate Embeddings
+    | Step 4: Generate Embeddings
     ------------------------------------------------------------------------
     */
+    console.log("\n🧠 Generating Embeddings...");
     const embeddedChunks = [];
-
     for (let i = 0; i < chunks.length; i++) {
       console.log(
-        `🔄 Generating Embedding ${i + 1}/${chunks.length}`
+        `🔄 Embedding ${i + 1}/${chunks.length}`
       );
-
       const embedding = await getEmbedding(chunks[i]);
-
       embeddedChunks.push({
         chunk: chunks[i],
         embedding,
       });
     }
 
-    console.log("\n✅ All Embeddings Generated Successfully!\n");
+    console.log("\n✅ All Embeddings Generated");
 
     /*
     ------------------------------------------------------------------------
-    | Create FAISS Index
+    | Step 5: Create FAISS Index
     ------------------------------------------------------------------------
     */
-    const dimension = embeddedChunks[0].embedding.length;
+    const dimension =
+      embeddedChunks[0].embedding.length;
 
-    console.log(`📏 Embedding Dimension: ${dimension}`);
+    console.log(
+      `\n📏 Embedding Dimension: ${dimension}`
+    );
 
     const index = new IndexFlatL2(dimension);
 
     /*
     ------------------------------------------------------------------------
-    | Store Vectors in FAISS
+    | Step 6: Store Embeddings in FAISS
     ------------------------------------------------------------------------
     */
+    console.log("\n💾 Storing Vectors in FAISS...");
     embeddedChunks.forEach((item) => {
       index.add(item.embedding);
     });
-
-    console.log(`✅ Stored ${embeddedChunks.length} vectors in FAISS\n`);
-
-    /*
-    ------------------------------------------------------------------------
-    | Search Query
-    ------------------------------------------------------------------------
-    */
-    const query = "What is FAISS?";
-
-    console.log(`🔍 Query: ${query}\n`);
+    console.log(
+      `✅ Stored ${embeddedChunks.length} vectors`
+    );
 
     /*
     ------------------------------------------------------------------------
-    | Generate Query Embedding
+    | Step 7: Start Chat Loop
     ------------------------------------------------------------------------
     */
-    const queryEmbedding = await getEmbedding(query);
-
-    /*
-    ------------------------------------------------------------------------
-    | Retrieve Top 2 Similar Chunks
-    ------------------------------------------------------------------------
-    */
-    const result = index.search(queryEmbedding, 2);
-
-    console.log("📊 Search Result:");
-    console.log(result);
-
-    /*
-    ------------------------------------------------------------------------
-    | Show Retrieved Chunks
-    ------------------------------------------------------------------------
-    */
-    console.log("\n🎯 Top Matching Chunks:\n");
-
-    result.labels.forEach((chunkIndex, rank) => {
-      console.log(
-        `================ Rank ${rank + 1} ================`
-      );
-
-      console.log(
-        embeddedChunks[chunkIndex].chunk
-      );
-
-      console.log("\n");
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
     });
+
+    console.log("\n🤖 PDF Assistant Ready!");
+    console.log("Type 'exit' to quit.\n");
+
+    while (true) {
+      /*
+      ----------------------------------------------------------------------
+      | Get User Query
+      ----------------------------------------------------------------------
+      */
+      const query = await askQuestion(rl,"❓ Ask Question: ");
+      if (query.trim().toLowerCase() === "exit") {
+        console.log("\n👋 Goodbye!");
+        rl.close();
+        break;
+      }
+
+      console.log("\n🔍 Searching PDF...\n");
+
+      /*
+      ----------------------------------------------------------------------
+      | Generate Query Embedding
+      ----------------------------------------------------------------------
+      */
+      const queryEmbedding =await getEmbedding(query);
+      /*
+      ----------------------------------------------------------------------
+      | Retrieve Top 3 Similar Chunks
+      ----------------------------------------------------------------------
+      */
+      const result = index.search(queryEmbedding,3);
+
+      /*
+      ----------------------------------------------------------------------
+      | Build Context
+      ----------------------------------------------------------------------
+      */
+      const context = result.labels
+        .map((chunkIndex) => {
+          return embeddedChunks[chunkIndex]?.chunk;
+        })
+        .filter(Boolean)
+        .join("\n\n");
+
+      /*
+      ----------------------------------------------------------------------
+      | Prompt for Gemini
+      ----------------------------------------------------------------------
+      */
+      const prompt = `
+You are a helpful PDF assistant.
+Answer ONLY from the provided context.
+If the answer is not available in the context,
+respond with:
+"I could not find that information in the PDF."
+
+-----------------------------
+CONTEXT
+-----------------------------
+${context}
+
+-----------------------------
+QUESTION
+-----------------------------
+${query}
+`;
+
+      /*
+      ----------------------------------------------------------------------
+      | Generate Final Answer
+      ----------------------------------------------------------------------
+      */
+      const response =await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+        });
+
+      /*
+      ----------------------------------------------------------------------
+      | Display Answer
+      ----------------------------------------------------------------------
+      */
+      console.log("\n🤖 Answer:\n");
+      console.log(response.text);
+
+      console.log(
+        "\n====================================================\n"
+      );
+    }
   } catch (error) {
-    console.error("❌ Error:");
+    console.error("\n❌ Application Error:");
     console.error(error);
   }
 }
@@ -187,4 +252,4 @@ async function extractAndEmbedPDF() {
 | Run Application
 |--------------------------------------------------------------------------
 */
-extractAndEmbedPDF();
+chatWithPDF();
